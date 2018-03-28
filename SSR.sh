@@ -439,8 +439,8 @@ install(){
         echo -e "Your obfs             : \033[41;37m ${shadowsockobfs} \033[0m"
         echo -e "Your Encryption Method: \033[41;37m ${shadowsockscipher} \033[0m"
         echo
-        echo "Welcome to visit:https://shadowsocks.be/9.html"
         echo "kehuduan:https://github.com/shadowsocksrr/shadowsocksr-csharp/releases"
+        echo
         echo "Enjoy it!"
         echo
     else
