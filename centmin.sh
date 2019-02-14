@@ -26,10 +26,10 @@ DT=$(date +"%d%m%y-%H%M%S")
 branchname='123.09beta01'
 SCRIPT_MAJORVER='1.2.3'
 SCRIPT_MINORVER='09'
-SCRIPT_INCREMENTVER='089'
+SCRIPT_INCREMENTVER='097'
 SCRIPT_VERSIONSHORT="${branchname}"
 SCRIPT_VERSION="${SCRIPT_VERSIONSHORT}.b${SCRIPT_INCREMENTVER}"
-SCRIPT_DATE='31/01/2019'
+SCRIPT_DATE='31/03/2019'
 SCRIPT_AUTHOR='eva2000 (centminmod.com)'
 SCRIPT_MODIFICATION_AUTHOR='eva2000 (centminmod.com)'
 SCRIPT_URL='https://centminmod.com'
@@ -625,7 +625,7 @@ REDISPHP_GIT='n'            # pull php 7 redis extension from git or pecl downlo
 PHPMONGODB='n'              # MongoDB PHP extension install
 MONGODBPHP_VER='1.5.3'      # MongoDB PHP version
 MONGODB_SASL='n'            # SASL not working yet leave = n
-PDOPGSQL_PHPVER='9.6'       # pdo-pgsql PHP extension version for postgresql
+PDOPGSQL_PHPVER='11'        # pdo-pgsql PHP extension version for postgresql
 PHP_LIBZIP='n'              # use newer libzip instead of PHP embedded zip
 PHP_ARGON='n'               # alias for PHP_LIBZIP, when PHP_ARGON='y' then PHP_LIBZIP='y'
 LIBZIP_VER='1.5.0'          # required for PHP 7.2 + with libsodium & argon2
@@ -636,10 +636,15 @@ PHP_MCRYPTPECL='y'          # PHP 7.2 deprecated mcrypt support so this adds it 
 PHP_MCRYPTPECLVER='1.0.1'   # https://pecl.php.net/package/mcrypt
 PHPZOPFLI='n'               # enable zopfli php extension https://github.com/kjdev/php-ext-zopfli
 PHPZOPFLI_ALWAYS='n'        # zopfli php extension always install on php recompiles
+PHP_BROTLI='y'              # brotli php extension https://github.com/kjdev/php-ext-brotli
+PHP_LZFOUR='y'              # lz4 php extension https://github.com/kjdev/php-ext-lz4
+PHP_LZF='y'                 # lzf php extension https://github.com/php/pecl-file_formats-lzf php-ext-lzf
+PHP_ZSTD='y'                # zstd php extension https://github.com/kjdev/php-ext-zstd
 
 SHORTCUTS='y'                # shortcuts
 
 POSTGRESQL='n'               # set to =y to install PostgreSQL 9.6 server, devel packages and pdo-pgsql PHP extension
+POSTGRESQL_BRANCHVER='11'   # PostgresSQL branch version https://www.postgresql.org/ i.e. 9.6, 10 or 11
 ########################################################
 # Choice of installing MariaDB 5.2 via RPM or via MariaDB 5.2 CentOS YUM Repo
 # If MDB_YUMREPOINSTALL=y and MDB_INSTALL=n then MDB_VERONLY version 
@@ -710,7 +715,7 @@ OPENSSLEQUALCIPHER_PATCH='n'  # https://community.centminmod.com/posts/57916/
 PRIORITIZE_CHACHA_OPENSSL='n' # https://community.centminmod.com/threads/15708/
 
 # LibreSSL
-LIBRESSL_SWITCH='y'        # if set to 'y' it overrides OpenSSL as the default static compiled option for Nginx server
+LIBRESSL_SWITCH='n'        # if set to 'y' it overrides OpenSSL as the default static compiled option for Nginx server
 LIBRESSL_VERSION='2.8.3'   # Use this version of LibreSSL http://www.libressl.org/
 
 # BoringSSL
@@ -746,7 +751,7 @@ LIBMEMCACHED_VER='1.0.18'   # libmemcached version for source compile
 TWEMPERF_VER='0.1.1'
 
 PHP_OVERWRITECONF='y'       # whether to show the php upgrade prompt to overwrite php-fpm.conf
-PHP_VERSION='7.2.13'        # Use this version of PHP
+PHP_VERSION='7.2.15'        # Use this version of PHP
 PHP_MIRRORURL='http://php.net'
 PHPUPGRADE_MIRRORURL="$PHP_MIRRORURL"
 XCACHE_VERSION='3.2.0'      # Use this version of Xcache
@@ -901,6 +906,7 @@ source "inc/nsd_install.inc"
 source "inc/nsdsetup.inc"
 source "inc/nsd_reinstall.inc"
 source "inc/compress.inc"
+source "inc/compress_php.inc"
 source "inc/nginx_logformat.inc"
 source "inc/logrotate_nginx.inc"
 source "inc/logrotate_phpfpm.inc"
@@ -1043,6 +1049,15 @@ if [[ "$INITIALINSTALL" = [yY] && -f /usr/bin/systemd-detect-virt && "$(/usr/bin
     echo "export LANGUAGE=en_US.UTF-8" >> /etc/profile.d/locale.sh
     source /etc/profile.d/locale.sh
   fi
+fi
+
+# auto enable nginx brotli module if Intel Skylake or newer cpus exist
+# newer cpus allow brotli compressed nginx files to be served faster
+# https://community.centminmod.com/posts/70527/
+if [[ "$(grep -o 'avx512' /proc/cpuinfo | uniq)" = 'avx512' ]]; then
+  NGXDYNAMIC_BROTLI='y'
+  NGINX_LIBBROTLI='y'
+  NGINX_BROTLIDEP_UPDATE='y'
 fi
 
 ###############################################################
@@ -2068,6 +2083,26 @@ zopfliinstall
 if [[ "$PHPMSSQL" = [yY] ]]; then
   echo "php_mssqlinstall"
   php_mssqlinstall
+fi
+
+if [[ "$PHP_BROTLI" = [yY] ]]; then
+  echo "php_ext_brotli"
+  php_ext_brotli
+fi
+
+if [[ "$PHP_LZFOUR" = [yY] ]]; then
+  echo "php_ext_lzfour"
+  php_ext_lzfour
+fi
+
+if [[ "$PHP_LZF" = [yY] ]]; then
+  echo "php_ext_lzf"
+  php_ext_lzf
+fi
+
+if [[ "$PHP_ZSTD" = [yY] ]]; then
+  echo "php_ext_zstd"
+  php_ext_zstd
 fi
 
 if [[ "$PHP_MCRYPTPECL" = [yY] ]] && [[ "$PHPMVER" = '7.3' ]]; then
