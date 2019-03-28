@@ -19,6 +19,7 @@ PHPFPMCONFDIR='/usr/local/nginx/conf/phpfpmd'
 
 UNATTENDED='y' # please leave at 'y' for best compatibility as at .07 release
 CMVERSION_CHECK='n'
+MENUEXIT_ALWAYS_YUMCHECK='y'  # also do yum check on centmin.sh exit
 CMSDEBUG='n'
 #####################################################
 DT=$(date +"%d%m%y-%H%M%S")
@@ -26,7 +27,7 @@ DT=$(date +"%d%m%y-%H%M%S")
 branchname='123.09beta01'
 SCRIPT_MAJORVER='1.2.3'
 SCRIPT_MINORVER='09'
-SCRIPT_INCREMENTVER='109'
+SCRIPT_INCREMENTVER='120'
 SCRIPT_VERSIONSHORT="${branchname}"
 SCRIPT_VERSION="${SCRIPT_VERSIONSHORT}.b${SCRIPT_INCREMENTVER}"
 SCRIPT_DATE='31/03/2019'
@@ -132,6 +133,10 @@ if [ -f /etc/init.d/directadmin ]; then
 echo "DirectAdmin detected.. centmin mod NOT compatible"
 echo "aborting script..."
 exit
+fi
+
+if [ ! -d /var/run/php-fpm/ ]; then
+    mkdir -p /var/run/php-fpm/
 fi
 
 TESTEDCENTOSVER='7.9'
@@ -604,6 +609,7 @@ LUACJSONVER='2.1.0.7'              # https://github.com/openresty/lua-cjson
 
 STRIPPHP='y'                 # set 'y' to strip PHP binary to reduce size
 PHP_INSTALL='y'              # Install PHP /w Fast Process Manager
+SWITCH_PHPFPM_SYSTEMD='y'    # Switch to centos 7 systemd php-fpm service file https://community.centminmod.com/threads/16511/
 ZSTD_LOGROTATE_PHPFPM='n'    # initial install only for zstd compressed log rotation community.centminmod.com/threads/16371/
 PHP_PATCH='y'                # Apply PHP patches if they exist
 PHP_TUNING='n'               # initial php-fpm install auto tuning
@@ -637,7 +643,7 @@ SUHOSINVER='0.9.38'
 
 PHPREDIS='y'                # redis PHP extension install
 REDISPHP_VER='3.1.6'        # redis PHP version for PHP <7.x
-REDISPHPSEVEN_VER='4.2.0'   # redis PHP version for PHP =>7.x
+REDISPHPSEVEN_VER='4.3.0'   # redis PHP version for PHP =>7.x
 REDISPHP_GIT='n'            # pull php 7 redis extension from git or pecl downloads
 PHPMONGODB='n'              # MongoDB PHP extension install
 MONGODBPHP_VER='1.5.3'      # MongoDB PHP version
@@ -653,10 +659,10 @@ PHP_MCRYPTPECL='y'          # PHP 7.2 deprecated mcrypt support so this adds it 
 PHP_MCRYPTPECLVER='1.0.1'   # https://pecl.php.net/package/mcrypt
 PHPZOPFLI='n'               # enable zopfli php extension https://github.com/kjdev/php-ext-zopfli
 PHPZOPFLI_ALWAYS='n'        # zopfli php extension always install on php recompiles
-PHP_BROTLI='y'              # brotli php extension https://github.com/kjdev/php-ext-brotli
-PHP_LZFOUR='y'              # lz4 php extension https://github.com/kjdev/php-ext-lz4
-PHP_LZF='y'                 # lzf php extension https://github.com/php/pecl-file_formats-lzf php-ext-lzf
-PHP_ZSTD='y'                # zstd php extension https://github.com/kjdev/php-ext-zstd
+PHP_BROTLI='n'              # brotli php extension https://github.com/kjdev/php-ext-brotli
+PHP_LZFOUR='n'              # lz4 php extension https://github.com/kjdev/php-ext-lz4
+PHP_LZF='n'                 # lzf php extension https://github.com/php/pecl-file_formats-lzf php-ext-lzf
+PHP_ZSTD='n'                # zstd php extension https://github.com/kjdev/php-ext-zstd
 
 SHORTCUTS='y'                # shortcuts
 
@@ -670,7 +676,9 @@ POSTGRESQL_BRANCHVER='11'   # PostgresSQL branch version https://www.postgresql.
 
 MDB_INSTALL='n'             # Install via RPM MariaDB MySQL Server replacement (Not recommended for VPS with less than 256MB RAM!)
 MDB_YUMREPOINSTALL='y'      # Install MariaDB 5.5 via CentOS YUM Repo
-MARIADB_INSTALLTENTHREE='n' # MariaDB 10.3 YUM default install if set to yes
+MARIADB_INSTALLTENTWO='n'   # MariaDB 10.2 YUM default install if set to yes
+MARIADB_INSTALLTENTHREE='y' # MariaDB 10.3 YUM default install if set to yes
+MARIADB_INSTALLTENFOUR='n'  # MariaDB 10.4 YUM default install if set to yes
 
 # Define current MariaDB version
 MDB_VERONLY='5.2.14'
@@ -688,9 +696,9 @@ MDB_PREVERSION="${MDB_PREVERONLY}-${MDB_PREBUILD}"     # Use this version of Mar
 # Set MDB_INSTALL=y and MYSQL_INSTALL='n'
 MYSQL_INSTALL='n'            # Install official Oracle MySQL Server (MariaDB alternative recommended)
 SENDMAIL_INSTALL='n'         # Install Sendmail (and mailx) set to y and POSTFIX_INSTALL=n for sendmail
-POSTFIX_INSTALL=y            # Install Postfix (and mailx) set to n and SENDMAIL_INSTALL=y for sendmail
+POSTFIX_INSTALL=n            # Install Postfix (and mailx) set to n and SENDMAIL_INSTALL=y for sendmail
 # Nginx
-NGINX_VERSION='1.15.9'       # Use this version of Nginx
+NGINX_VERSION='1.15.10'       # Use this version of Nginx
 NGINX_VHOSTSSL='y'           # enable centmin.sh menu 2 prompt to create self signed SSL vhost 2nd vhost conf
 NGINXBACKUP='y'
 ZSTD_LOGROTATE_NGINX='n'     # initial install only for zstd compressed log rotation community.centminmod.com/threads/16371/
@@ -768,8 +776,8 @@ LIBMEMCACHED_VER='1.0.18'   # libmemcached version for source compile
 TWEMPERF_VER='0.1.1'
 
 PHP_OVERWRITECONF='y'       # whether to show the php upgrade prompt to overwrite php-fpm.conf
-PHP_VERSION='7.2.15'        # Use this version of PHP
-PHP_MIRRORURL='http://php.net'
+PHP_VERSION='7.2.16'        # Use this version of PHP
+PHP_MIRRORURL='https://www.php.net'
 PHPUPGRADE_MIRRORURL="$PHP_MIRRORURL"
 XCACHE_VERSION='3.2.0'      # Use this version of Xcache
 APCCACHE_VERSION='3.1.13'   # Use this version of APC Cache
@@ -777,7 +785,7 @@ IGBINARY_VERSION='1.2.1'
 IGBINARY_INSTALL='y'        # install or not igbinary support for APC and Memcached server
 IGBINARYGIT='y'
 ZOPCACHEDFT='y'
-ZOPCACHECACHE_VERSION='7.0.5'   # for PHP <=5.4 http://pecl.php.net/package/ZendOpcache
+ZOPCACHECACHE_VERSION='7.0.5'   # for PHP <=5.4 https://pecl.php.net/package/ZendOpcache
 ZOPCACHE_OVERRIDE='n'           # =y will override PHP 5.5, 5.6, 7.0 inbuilt Zend OpCache version
 # Python
 PYTHON_VERSION='2.7.10'       # Use this version of Python
@@ -953,7 +961,9 @@ source "inc/php_mssql.inc"
 source "inc/mysql_proclimit.inc"
 source "inc/mysqltmp.inc"
 source "inc/setmycnf.inc"
+source "inc/mariadb_install102.inc"
 source "inc/mariadb_install103.inc"
+source "inc/mariadb_install104.inc"
 source "inc/mariadb_install.inc"
 source "inc/mysql_install.inc"
 source "inc/mariadb_submenu.inc"
@@ -985,6 +995,7 @@ source "inc/mariadb_upgrade10.inc"
 source "inc/mariadb_upgrade101.inc"
 source "inc/mariadb_upgrade102.inc"
 source "inc/mariadb_upgrade103.inc"
+source "inc/mariadb_upgrade104.inc"
 source "inc/nginx_errorpage.inc"
 source "inc/sendmail.inc"
 source "inc/postfix.inc"
@@ -1867,13 +1878,19 @@ echo "" >> "${CENTMINLOGDIR}/centminmod_ngxinstalltime_${DT}.log"
 echo "Total Nginx First Time Install Time: $NGXINSTALLTIME seconds" >> "${CENTMINLOGDIR}/centminmod_ngxinstalltime_${DT}.log"
 ls -lah "${CENTMINLOGDIR}/centminmod_ngxinstalltime_${DT}.log"
 
-if [[ "$MARIADB_INSTALLTENTHREE" = [yY] ]]; then
+if [[ "$MARIADB_INSTALLTENFOUR" = [yY] && "$MARIADB_INSTALLTENTWO" = [nN] ]]; then
+  mariadbtenfour_installfunct
+elif [[ "$MARIADB_INSTALLTENTHREE" = [yY] && "$MARIADB_INSTALLTENTWO" = [nN] ]]; then
   mariadbtenthree_installfunct
+elif [[ "$MARIADB_INSTALLTENTWO" = [yY] ]]; then
+  mariadbtentwo_installfunct
 else
   mariadbinstallfunct
 fi
 
 mysqlinstallfunct
+
+securemysql
 
 if [[ "$PHP_INSTALL" = [yY] ]]; then
     phpinstallstarttime=$(TZ=UTC date +%s.%N)
@@ -2005,6 +2022,10 @@ fi
     # /etc/init.d/php-fpm force-quit
     /etc/init.d/php-fpm start
     fileinfo_standalone
+
+    if [[ "$CENTOS_SEVEN" -eq '7' && "$SWITCH_PHPFPM_SYSTEMD" = [yY] && -f "$CUR_DIR/tools/php-systemd.sh" ]]; then
+      $CUR_DIR/tools/php-systemd.sh fpm-systemd
+    fi
 
 if [[ "$(grep exclude /etc/yum.conf)" && "$MDB_INSTALL" = y ]]; then
     cecho "exclude line exists... adding nginx* mysql* php* exclusions" $boldgreen
@@ -2268,15 +2289,18 @@ phpiadmin
     echo "*************************************************"
 
 if [[ "$MDB_INSTALL" == [yY] || "$MYSQL_INSTALL" == [yY] || "$UNATTENDED" == [yY] ]]; then
-  securemysql
+  # securemysql
+  show_mysqlpass
 else
-  securemysql
+  # securemysql
+  show_mysqlpass
 fi
 
     echo "*************************************************"
     cecho "* MariaDB Security Setup Completed" $boldgreen
     echo "*************************************************"
 
+disk_cleanups
 bookmark
 
 sync 
